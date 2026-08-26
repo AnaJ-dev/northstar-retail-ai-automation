@@ -1,0 +1,81 @@
+{
+  "name": "CAPSTONE HELPER - Mock Order API",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "capstone-order-api",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2cc86ca6-068f-4d5f-8c29-cfe17898a001",
+      "name": "Mock Order API"
+    },
+    {
+      "parameters": {
+        "jsCode": "const orderId = $json.query?.orderId;\n\nconst orders = {\n  \"ORD-1042\": {\n    orderId: \"ORD-1042\",\n    customerName: \"Anna Smith\",\n    email: \"anna@example.com\",\n    orderDate: \"2026-08-08\",\n    deliveryDate: \"2026-08-10\",\n    amount: 89.99,\n    deliveryStatus: \"delivered\",\n    country: \"UK\"\n  },\n  \"ORD-1043\": {\n    orderId: \"ORD-1043\",\n    customerName: \"Ben Carter\",\n    email: \"ben@example.com\",\n    orderDate: \"2026-07-04\",\n    deliveryDate: \"2026-07-06\",\n    amount: 129.50,\n    deliveryStatus: \"delivered\",\n    country: \"UK\"\n  },\n  \"ORD-1044\": {\n    orderId: \"ORD-1044\",\n    customerName: \"Clara Jones\",\n    email: \"clara@example.com\",\n    orderDate: \"2026-08-11\",\n    deliveryDate: \"2026-08-13\",\n    amount: 54.00,\n    deliveryStatus: \"delivered\",\n    country: \"UK\"\n  },\n  \"ORD-1045\": {\n    orderId: \"ORD-1045\",\n    customerName: \"Daniel Lee\",\n    email: \"daniel@example.com\",\n    orderDate: \"2026-08-15\",\n    deliveryDate: null,\n    amount: 210.00,\n    deliveryStatus: \"in_transit\",\n    country: \"UK\"\n  },\n  \"ORD-1046\": {\n    orderId: \"ORD-1046\",\n    customerName: \"Eva Muller\",\n    email: \"eva@example.com\",\n    orderDate: \"2026-08-01\",\n    deliveryDate: \"2026-08-05\",\n    amount: 75.20,\n    deliveryStatus: \"delivered\",\n    country: \"Germany\"\n  },\n  \"ORD-1047\": {\n    orderId: \"ORD-1047\",\n    customerName: \"Farah Khan\",\n    email: \"farah@example.com\",\n    orderDate: \"2026-07-18\",\n    deliveryDate: \"2026-07-21\",\n    amount: 44.95,\n    deliveryStatus: \"delivered\",\n    country: \"UK\"\n  },\n  \"ORD-1048\": {\n    orderId: \"ORD-1048\",\n    customerName: \"George Hill\",\n    email: \"george@example.com\",\n    orderDate: \"2026-07-17\",\n    deliveryDate: \"2026-07-20\",\n    amount: 310.00,\n    deliveryStatus: \"delivered\",\n    country: \"UK\"\n  }\n};\n\nif (!orderId) {\n  return [{ json: { statusCode: 400, body: { error: \"orderId query parameter is required\" } } }];\n}\n\nif (orderId === \"ORD-500\") {\n  return [{ json: { statusCode: 500, body: { error: \"Simulated upstream order service failure\" } } }];\n}\n\nif (orderId === \"ORD-BAD\") {\n  return [{\n    json: {\n      statusCode: 200,\n      body: {\n        orderId: \"ORD-BAD\",\n        amount: \"unknown\",\n        note: \"Intentionally incomplete response for validation testing\"\n      }\n    }\n  }];\n}\n\nif (!orders[orderId]) {\n  return [{ json: { statusCode: 404, body: { error: \"Order not found\", orderId } } }];\n}\n\nreturn [{ json: { statusCode: 200, body: orders[orderId] } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "2cc86ca6-068f-4d5f-8c29-cfe17898a002",
+      "name": "Return Test Order"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        480,
+        0
+      ],
+      "id": "2cc86ca6-068f-4d5f-8c29-cfe17898a003",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Mock Order API": {
+      "main": [
+        [
+          {
+            "node": "Return Test Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return Test Order": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

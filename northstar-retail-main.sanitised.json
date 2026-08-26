@@ -1,0 +1,1646 @@
+{
+  "name": "Northstar Retail",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2528,
+        1040
+      ],
+      "id": "b0f43862-4858-4e2d-85f1-d63636640e04",
+      "name": "Embeddings Google Gemini"
+    },
+    {
+      "parameters": {
+        "formTitle": "Customer Form",
+        "formDescription": "Please fill the form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "customerName",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "email",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "orderId",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "requestType",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "refund"
+                  },
+                  {
+                    "option": "damaged_item"
+                  },
+                  {
+                    "option": "delivery"
+                  },
+                  {
+                    "option": "policy_question"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "message",
+              "fieldType": "textarea",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "62ccb33f-f47d-4bd9-b80f-edbfe673d41e",
+      "name": "Customer Support Form"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9b77ffc6-57ca-4348-9299-492ad9a7ebd0",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        0
+      ],
+      "id": "e4cc90a7-d897-44ca-bb94-32f1a715bcbc",
+      "name": "If:Validate Email"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1916128-780b-4352-beb1-dcc979b682f6",
+              "name": "status",
+              "value": "rejected_missing_email",
+              "type": "string"
+            },
+            {
+              "id": "f7018efd-8155-489e-83b4-aaf67efc30f8",
+              "name": "reason",
+              "value": "missing_email",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        464,
+        352
+      ],
+      "id": "1e54a31a-6726-41d6-900a-96da1f290e2a",
+      "name": "Reject Missing Email"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n\nconst checkAll=$input.all()\n\nconst store=checkAll.map((eachElement)=> ({\n  \n fixName:eachElement.json.customerName.trim(),\n   fixEmail:eachElement.json.email.toLocaleLowerCase()\n}))\n\n\nreturn[\n  { json:{\ncustomerName:store[0].fixName,\nemail:store[0].fixEmail,\norderId:$input.first().json.orderId,\nrequestType:$input.first().json.requestType,\n  message: $input.first().json.message,\n submittedAt: $input.first().json.submittedAt,\nformMode: $input.first().json.formMode\n\n}\n  }  \n]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -16
+      ],
+      "id": "ab46898d-fc15-40db-8921-cb56ba9e978b",
+      "name": "Normalise Customer Data"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"RESPONSE\": \"VALID VALUES\"\n\n}\n",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        640,
+        -16
+      ],
+      "id": "70701aa0-4e93-45aa-89ee-4cca227b187f",
+      "name": "Valid Customer Data"
+    },
+    {
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "orderId",
+              "keyValue": "={{ $json.orderId }}"
+            },
+            {
+              "keyName": "email",
+              "keyValue": "={{ $json.email }}"
+            },
+            {
+              "keyName": "requestType",
+              "keyValue": "={{ $json.requestType }}"
+            },
+            {
+              "keyName": "message",
+              "keyValue": "={{ $json.message }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        784,
+        -448
+      ],
+      "id": "3b73f761-aad2-4729-b67c-28f4e8a949aa",
+      "name": "If:Duplicate Exists"
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "orderId",
+              "keyValue": "={{ $json.orderId }}"
+            },
+            {
+              "keyName": "email",
+              "keyValue": "={{ $json.email }}"
+            },
+            {
+              "keyName": "requestType",
+              "keyValue": "={{ $json.requestType }}"
+            },
+            {
+              "keyName": "message",
+              "keyValue": "={{ $json.message }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        784,
+        624
+      ],
+      "id": "eb0ed509-d4ce-43b9-8d64-db5976c27d11",
+      "name": "If:Completely New Submission"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0387aca8-8dac-42ba-a9a8-1f9cd5f0cb01",
+              "name": "status",
+              "value": "duplicate_submission",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1088,
+        -448
+      ],
+      "id": "d61fac89-c1df-4fba-9fde-b2f8c2e3a193",
+      "name": "Duplicate Submission"
+    },
+    {
+      "parameters": {
+        "url": "https://YOUR-N8N-DOMAIN/webhook/capstone-order-api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "orderId",
+              "value": "={{ $json.orderId }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1280,
+        624
+      ],
+      "id": "7ba46d34-2025-4d53-af02-73ba24914ef7",
+      "name": "Order API Lookup Data"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1600,
+        -272
+      ],
+      "id": "7826f344-3abd-49be-a354-ce93c0f96678",
+      "name": "Merge Customer and Order Data",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.orderId }}",
+                    "rightValue": "ORD-BAD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "cfa75184-390d-458c-abd8-67db0b1d039a"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "98943125-d495-479b-9727-4876770470b4",
+                    "leftValue": "={{ $json.orderId }}",
+                    "rightValue": "ORD-500",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "65a0508e-d192-4a94-a351-dc6afe3eba37",
+                    "leftValue": "={{ $json.orderId }}",
+                    "rightValue": "ORD-DOES-NOT-EXIST",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bd22786a-4d29-46b4-95dc-5f3ba7003e04",
+                    "leftValue": "={{ $json.orderId !== \"ORD-BAD\" && $json.orderId !== \"ORD-500\" && $json.orderId !== \"ORD-DOES-NOT-EXIST\" }}\n",
+                    "rightValue": "=Ttrue",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "REFUND PATH"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2016,
+        -304
+      ],
+      "id": "9db845cd-d145-49c4-a5e0-4558705d51c9",
+      "name": "Switch:Route API Response"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "68608974-8bf0-47a1-bdd8-a458a2e185af",
+              "name": "status",
+              "value": "invalid_api_response",
+              "type": "string"
+            },
+            {
+              "id": "45294cba-ef59-4385-926a-761f0d0b91d4",
+              "name": "reason",
+              "value": "bad_or_incomplete_order_data",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2960,
+        -560
+      ],
+      "id": "3707db1f-c02c-479d-a48c-c27ac10f3612",
+      "name": "Invalid API Response"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a659cfe3-778e-4699-a1fc-f7495792adcd",
+              "name": "status",
+              "value": "api_failure",
+              "type": "string"
+            },
+            {
+              "id": "17297155-7372-4ed5-974f-25f723baed0f",
+              "name": "reason",
+              "value": "order_api_500",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2960,
+        -384
+      ],
+      "id": "2e7c8f0f-241c-44c5-8e9f-0377f16145bc",
+      "name": "API Failure"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fa01053e-f6e2-4e2b-9a42-e0d81ecf2d17",
+              "name": "status",
+              "value": "order_not_found",
+              "type": "string"
+            },
+            {
+              "id": "ad0eab0e-0589-4455-b72c-d9aa05c3ff47",
+              "name": "reason",
+              "value": "order_not_found",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2960,
+        -208
+      ],
+      "id": "ca37c08d-6786-405a-98ad-28d0ee54baed",
+      "name": "Order Not Found"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyse the customer message.\n\nMessage:\n{{ $json.message }}\n\nReturn:\nintent\nurgency.\n\nYOU CAN CHOOSE FROM:\nintent:\nrefund\ndamaged_item\ndelivery\npolicy_question\nother\n\nurgency:\nlow\nmedium\nhigh",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": []
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1744,
+        96
+      ],
+      "id": "e5c21850-41af-440b-8980-6f9c2b5514ef",
+      "name": "LLM:Classify Customer Message",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1744,
+        688
+      ],
+      "id": "2d52aa68-d775-49ca-8c0a-2c62af1ea6ab",
+      "name": "Gemini Classification Model"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"intent\": {\n      \"type\": \"string\",\n      \"enum\": [\"refund\", \"damaged_item\", \"delivery\", \"policy_question\", \"other\"]\n    },\n    \"urgency\": {\n      \"type\": \"string\",\n      \"enum\": [\"low\", \"medium\", \"high\"]\n    }\n  },\n  \"required\": [\"intent\", \"urgency\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1888,
+        624
+      ],
+      "id": "b9bd6126-03ab-4b47-af13-59e1dfdc4e58",
+      "name": "Structured Output Parser:Intent and Urgency"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2320,
+        96
+      ],
+      "id": "0efc4182-f84a-4366-9c44-12ce24263051",
+      "name": "Merge AI Classification"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.requestType }}",
+                    "rightValue": "=refund",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7ff021b2-3196-467d-95c9-b773153c2b04"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "REFUND PATH"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fb08ac31-320f-46c2-86f3-e0d4cff62397",
+                    "leftValue": "={{ $json.requestType }}",
+                    "rightValue": "damaged_item",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "DAMAGED ITEM PATH"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "449f56b1-b28a-4f74-9ee4-1d9f987f27a9",
+                    "leftValue": "={{ $json.requestType }}",
+                    "rightValue": "delivery",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "DELIVERY PATH"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bba13df8-d1e9-41e2-97f2-2c10497b8d49",
+                    "leftValue": "={{ $json.requestType }}",
+                    "rightValue": "policy_question",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "POLICY PATH"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2592,
+        64
+      ],
+      "id": "c26d5924-f80e-4097-85a4-9f3795a444f4",
+      "name": "Route Request Type",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "addToDate",
+        "magnitude": "={{ $json.body.deliveryDate }}",
+        "duration": 30,
+        "outputFieldName": "refundDeadline",
+        "options": {
+          "includeInputFields": true
+        }
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        2960,
+        48
+      ],
+      "id": "38486e2f-2768-4ae8-afd4-b026b38abd24",
+      "name": "Date & Time: Deadline calculator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9f079238-85ed-46a6-a075-a44be4a72fe8",
+              "leftValue": "={{ $json.submittedAt }}",
+              "rightValue": "={{ $json.refundDeadline }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "beforeOrEquals"
+              }
+            },
+            {
+              "id": "18649ef5-d072-4c7f-85e9-0cf69029e75b",
+              "leftValue": "={{ $json.body.deliveryStatus }}",
+              "rightValue": "delivered",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3232,
+        48
+      ],
+      "id": "d9fcaf7e-c893-4cbb-80ef-57748ef3e81d",
+      "name": "Check Refund Eligibility"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9af83e99-0aa7-4490-9a84-0d3074275c96",
+              "name": "status",
+              "value": "eligible_refund",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        3552,
+        32
+      ],
+      "id": "71cbe586-8ee6-46b4-9afe-1f4617eb2266",
+      "name": "Eligible for Refund"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "26efce93-f6f7-46c8-ad61-77eb2ff54712",
+              "name": "status",
+              "value": "needs_review",
+              "type": "string"
+            },
+            {
+              "id": "fc0c9dc5-fa1c-485a-aad7-ede1a338fdc8",
+              "name": "reason",
+              "value": "outside_30_day_return_window",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        3568,
+        256
+      ],
+      "id": "d7ca979a-6970-4254-aba6-f2842406d927",
+      "name": "Refund: Manual Review Required"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8fbf32ce-78b5-4e80-98df-fd1bfad68846",
+              "name": "priority",
+              "value": "high",
+              "type": "string"
+            },
+            {
+              "id": "a2110295-2948-45f3-a9cf-19d0d509fcea",
+              "name": "=reason",
+              "value": "damaged_item",
+              "type": "string"
+            },
+            {
+              "id": "ea3e5c42-d87d-44e9-bc9c-8e32e1696246",
+              "name": "status",
+              "value": "needs_review",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        3568,
+        448
+      ],
+      "id": "3a941f29-4800-42f8-a89b-5a91ec334a03",
+      "name": "Damage: Review Required"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "48663315-5b39-4cb8-b1fc-80d787b78c6e",
+              "name": "status",
+              "value": "delivery_support",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        3584,
+        640
+      ],
+      "id": "17545ef2-b118-4dd3-96fb-16ac6531856d",
+      "name": "Delivery Support"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "memoryKey": {
+          "__rl": true,
+          "value": "returns_refund_policy",
+          "mode": "list",
+          "cachedResultName": "returns_refund_policy"
+        },
+        "prompt": "={{ $json.message }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        2528,
+        768
+      ],
+      "id": "2374d191-3327-46b6-9b33-24a0b38ead19",
+      "name": "Retrieve Policy Context"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "document.pageContent",
+              "renameField": true,
+              "outputFieldName": "MergedText"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2880,
+        768
+      ],
+      "id": "aeb08248-895d-4597-bed2-005448e9722e",
+      "name": "Aggregate Policy Chunks"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Question:\n{{ $('Route Request Type').item.json.message }}\n\nContext:\n{{ $json.MergedText }}\n\nAnswer the question using only the provided context.\n\nIf the answer is not contained in the context, reply exactly:\nNO INFORMATION",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3104,
+        768
+      ],
+      "id": "3142eaec-b261-4988-93f4-25dec7ff3ea7",
+      "name": "Answer Policy Question"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        3104,
+        992
+      ],
+      "id": "130d7e83-a72c-4229-89b4-211922a37548",
+      "name": "Gemini Policy Model"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b8828f24-1187-4b28-bf79-213d5bf763b2",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "NO INFORMATION",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3360,
+        1184
+      ],
+      "id": "d8929f36-ff09-4718-b1aa-c2b33be2e388",
+      "name": "Review Policy Answer"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "33e7ea9b-4923-4e3f-bc22-7f5686f2fcc4",
+              "name": "status",
+              "value": "answered",
+              "type": "string"
+            },
+            {
+              "id": "01bc87ca-027b-4fe3-99ca-b3923973b3f1",
+              "name": "answer",
+              "value": "={{ $('Answer Policy Question').item.json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "7c551033-322b-4e77-b077-ad5f4de80c87",
+              "name": "source",
+              "value": "returns_refund_policy.pdf",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        3744,
+        1200
+      ],
+      "id": "3800d07f-e141-4e47-819f-321fd507d478",
+      "name": "Policy Answer Present"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "db277f57-26c3-43ca-903f-b0cea317a195",
+              "name": "status",
+              "value": "needs_review",
+              "type": "string"
+            },
+            {
+              "id": "20dea381-33fc-4c4f-818a-68b2cb9b0094",
+              "name": "reason",
+              "value": "policy_information_not_found",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        3728,
+        928
+      ],
+      "id": "e1cc4e81-50f5-40bc-9b99-a34d82677810",
+      "name": "Policy Answer Not Present"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "orderId": "={{ $('Customer Support Form').item.json.orderId }}",
+            "email": "={{ $('Normalise Customer Data').item.json.email }}",
+            "requestType": "={{ $('Customer Support Form').item.json.requestType }}",
+            "message": "={{ $('Customer Support Form').item.json.message }}",
+            "status": "={{ $json.status ?? ($json[\"ELIGIBLE REFUND\"] ? \"eligible_refund\" : ($json[\"manual review\"] ? \"needs_review\" : \"unknown\")) }}",
+            "processedAt": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "orderId",
+              "displayName": "orderId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "requestType",
+              "displayName": "requestType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processedAt",
+              "displayName": "processedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4224,
+        208
+      ],
+      "id": "f31eadf6-6c8e-4259-ba25-fd401a47133e",
+      "name": "Save Data Records"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "YOUR_DATA_TABLE_ID",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "orderId": "={{ $('Customer Support Form').item.json.orderId }}",
+            "email": "={{ $('Normalise Customer Data').item.json.email }}",
+            "requestType": "={{ $('Customer Support Form').item.json.requestType }}",
+            "message": "={{ $('Customer Support Form').item.json.message }}",
+            "status": "={{ $json.status ?? ($json[\"ELIGIBLE REFUND\"] ? \"eligible_refund\" : ($json[\"manual review\"] ? \"needs_review\" : \"unknown\")) }}",
+            "processedAt": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "orderId",
+              "displayName": "orderId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "requestType",
+              "displayName": "requestType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "processedAt",
+              "displayName": "processedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2304,
+        336
+      ],
+      "id": "ffa5b7bc-2213-483f-a8c9-8ac5d651e011",
+      "name": "Save Data Records1"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"status\": \"needs_review\",\n  \"reason\": \"ai_classification_failed\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2080,
+        336
+      ],
+      "id": "eb86c6f6-3997-43dc-8feb-4067981f6da3",
+      "name": "Review: AI classification failed"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Retrieve Policy Context",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Support Form": {
+      "main": [
+        [
+          {
+            "node": "If:Validate Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If:Validate Email": {
+      "main": [
+        [
+          {
+            "node": "Normalise Customer Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject Missing Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalise Customer Data": {
+      "main": [
+        [
+          {
+            "node": "Valid Customer Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid Customer Data": {
+      "main": [
+        [
+          {
+            "node": "If:Completely New Submission",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If:Duplicate Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If:Duplicate Exists": {
+      "main": [
+        [
+          {
+            "node": "Duplicate Submission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If:Completely New Submission": {
+      "main": [
+        [
+          {
+            "node": "Merge Customer and Order Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Order API Lookup Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order API Lookup Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Customer and Order Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Customer and Order Data": {
+      "main": [
+        [
+          {
+            "node": "Switch:Route API Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch:Route API Response": {
+      "main": [
+        [
+          {
+            "node": "Invalid API Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API Failure",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Order Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LLM:Classify Customer Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge AI Classification",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "LLM:Classify Customer Message": {
+      "main": [
+        [
+          {
+            "node": "Merge AI Classification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Review: AI classification failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Classification Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LLM:Classify Customer Message",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser:Intent and Urgency": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "LLM:Classify Customer Message",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge AI Classification": {
+      "main": [
+        [
+          {
+            "node": "Route Request Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Request Type": {
+      "main": [
+        [
+          {
+            "node": "Date & Time: Deadline calculator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Damage: Review Required",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delivery Support",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retrieve Policy Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time: Deadline calculator": {
+      "main": [
+        [
+          {
+            "node": "Check Refund Eligibility",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Refund Eligibility": {
+      "main": [
+        [
+          {
+            "node": "Eligible for Refund",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Refund: Manual Review Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eligible for Refund": {
+      "main": [
+        [
+          {
+            "node": "Save Data Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refund: Manual Review Required": {
+      "main": [
+        [
+          {
+            "node": "Save Data Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Damage: Review Required": {
+      "main": [
+        [
+          {
+            "node": "Save Data Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delivery Support": {
+      "main": [
+        [
+          {
+            "node": "Save Data Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Policy Context": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Policy Chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Policy Chunks": {
+      "main": [
+        [
+          {
+            "node": "Answer Policy Question",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer Policy Question": {
+      "main": [
+        [
+          {
+            "node": "Review Policy Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Policy Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer Policy Question",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Review Policy Answer": {
+      "main": [
+        [
+          {
+            "node": "Policy Answer Not Present",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Policy Answer Present",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Policy Answer Present": {
+      "main": [
+        [
+          {
+            "node": "Save Data Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Policy Answer Not Present": {
+      "main": [
+        [
+          {
+            "node": "Save Data Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Review: AI classification failed": {
+      "main": [
+        [
+          {
+            "node": "Save Data Records1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}

@@ -1,0 +1,74 @@
+{
+  "orders": [
+    {
+      "orderId": "ORD-1042",
+      "customerName": "Anna Smith",
+      "email": "anna@example.com",
+      "orderDate": "2026-08-08",
+      "deliveryDate": "2026-08-10",
+      "amount": 89.99,
+      "deliveryStatus": "delivered",
+      "country": "UK"
+    },
+    {
+      "orderId": "ORD-1043",
+      "customerName": "Ben Carter",
+      "email": "ben@example.com",
+      "orderDate": "2026-07-04",
+      "deliveryDate": "2026-07-06",
+      "amount": 129.5,
+      "deliveryStatus": "delivered",
+      "country": "UK"
+    },
+    {
+      "orderId": "ORD-1044",
+      "customerName": "Clara Jones",
+      "email": "clara@example.com",
+      "orderDate": "2026-08-11",
+      "deliveryDate": "2026-08-13",
+      "amount": 54.0,
+      "deliveryStatus": "delivered",
+      "country": "UK"
+    },
+    {
+      "orderId": "ORD-1045",
+      "customerName": "Daniel Lee",
+      "email": "daniel@example.com",
+      "orderDate": "2026-08-15",
+      "deliveryDate": null,
+      "amount": 210.0,
+      "deliveryStatus": "in_transit",
+      "country": "UK"
+    },
+    {
+      "orderId": "ORD-1046",
+      "customerName": "Eva Muller",
+      "email": "eva@example.com",
+      "orderDate": "2026-08-01",
+      "deliveryDate": "2026-08-05",
+      "amount": 75.2,
+      "deliveryStatus": "delivered",
+      "country": "Germany"
+    },
+    {
+      "orderId": "ORD-1047",
+      "customerName": "Farah Khan",
+      "email": "farah@example.com",
+      "orderDate": "2026-07-18",
+      "deliveryDate": "2026-07-21",
+      "amount": 44.95,
+      "deliveryStatus": "delivered",
+      "country": "UK"
+    },
+    {
+      "orderId": "ORD-1048",
+      "customerName": "George Hill",
+      "email": "george@example.com",
+      "orderDate": "2026-07-17",
+      "deliveryDate": "2026-07-20",
+      "amount": 310.0,
+      "deliveryStatus": "delivered",
+      "country": "UK"
+    }
+  ]
+}

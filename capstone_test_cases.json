@@ -1,0 +1,94 @@
+{
+  "testCases": [
+    {
+      "testId": "T01",
+      "customerName": "Anna Smith",
+      "email": "",
+      "orderId": "ORD-1042",
+      "requestType": "refund",
+      "message": "I want to return my order.",
+      "expectedHighLevel": "rejected_missing_email"
+    },
+    {
+      "testId": "T02",
+      "customerName": "   Anna Smith  ",
+      "email": "ANNA@EXAMPLE.COM",
+      "orderId": "ORD-1042",
+      "requestType": "refund",
+      "message": "I no longer want the item. Can I return it?",
+      "expectedHighLevel": "eligible_refund_and_normalised"
+    },
+    {
+      "testId": "T03",
+      "customerName": "Ben Carter",
+      "email": "ben@example.com",
+      "orderId": "ORD-1043",
+      "requestType": "refund",
+      "message": "Can I return this order now?",
+      "expectedHighLevel": "needs_review_outside_30_days"
+    },
+    {
+      "testId": "T04",
+      "customerName": "Clara Jones",
+      "email": "clara@example.com",
+      "orderId": "ORD-1044",
+      "requestType": "damaged_item",
+      "message": "The box was crushed and the item is cracked.",
+      "expectedHighLevel": "high_priority_needs_review"
+    },
+    {
+      "testId": "T05",
+      "customerName": "Daniel Lee",
+      "email": "daniel@example.com",
+      "orderId": "ORD-1045",
+      "requestType": "delivery",
+      "message": "My parcel has still not arrived.",
+      "expectedHighLevel": "delivery_support"
+    },
+    {
+      "testId": "T06",
+      "customerName": "Eva Muller",
+      "email": "eva@example.com",
+      "orderId": "ORD-1046",
+      "requestType": "policy_question",
+      "message": "For an international change-of-mind return, who pays the return postage?",
+      "expectedHighLevel": "rag_found_with_source"
+    },
+    {
+      "testId": "T07",
+      "customerName": "Eva Muller",
+      "email": "eva@example.com",
+      "orderId": "ORD-1046",
+      "requestType": "policy_question",
+      "message": "What pension contribution does Northstar Retail make for employees?",
+      "expectedHighLevel": "rag_not_found_human_review"
+    },
+    {
+      "testId": "T08",
+      "customerName": "API Failure",
+      "email": "api@example.com",
+      "orderId": "ORD-500",
+      "requestType": "refund",
+      "message": "Can I return this?",
+      "expectedHighLevel": "controlled_api_failure"
+    },
+    {
+      "testId": "T09",
+      "customerName": "Invalid Response",
+      "email": "invalid@example.com",
+      "orderId": "ORD-BAD",
+      "requestType": "refund",
+      "message": "Can I return this?",
+      "expectedHighLevel": "invalid_api_response_handled"
+    },
+    {
+      "testId": "T10",
+      "customerName": "Anna Smith",
+      "email": "anna@example.com",
+      "orderId": "ORD-1042",
+      "requestType": "refund",
+      "message": "I no longer want the item. Can I return it?",
+      "expectedHighLevel": "duplicate_submission_handled_on_second_run"
+    }
+  ]
+}
