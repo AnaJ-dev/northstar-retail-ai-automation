@@ -1,4 +1,4 @@
-# Northstar Retail — AI Customer Support Automation
+# Northstar Retail: AI Customer Support Automation
 
 An n8n capstone project that automates customer-support requests using deterministic workflow logic, API data, Gemini classification, Retrieval-Augmented Generation (RAG), human-review fallbacks and audit storage.
 
